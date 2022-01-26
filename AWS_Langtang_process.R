@@ -38,7 +38,7 @@ gc()
 
 # The TSaggregate.R code is necessary for the hourly aggregation. It is available at
 # https://github.com/fidelsteiner/BasicCode/blob/master/timeseriesAnalysis/TSaggregate.R
-source("F:\\PhD\\BasicCode\\timeseriesAnalysis\\TSaggregate.R")
+source("D:\\Work\\Code\\BasicCode\\timeseriesAnalysis\\TSaggregate.R")
 
 # function for averages of wind directions
 winddirmean <- function(ws,wd,timestr,timStep,timShift){
@@ -272,18 +272,18 @@ write.csv(expData,file=path_kya&'//'&finOutput, row.names=FALSE)
 ################
 # Location Yala Basecamp
 ################
-pathkya <- 'F:\\PhD\\FieldWork\\ProcessingFieldData\\LangtangAutumn2019' # path where data files are located and final file will be saved
-finOutput <- 'finalYalaBC2019.csv'
-raw10minFile <- '2019_YalaBCAWS_10min_RAW.csv'            # generally includes all climate data
-raw60minFile <- '2019_YalaBCAWS_60min_RAW.csv'      # generally includes SR50 data
+path_yal <- 'D:\\Work\\FieldWork\\FieldDataSorting\\AWS_YalaBC' # path where data files are located and final file will be saved
+finOutput <- 'finalYalaBC2021.csv'
+raw10minFile <- '2021_YalaBCAWS_10min_RAW.csv'            # generally includes all climate data
+raw60minFile <- '2021_YalaBCAWS_60min_RAW.csv'      # generally includes SR50 data
 
-datRaw <- read.table(path_kya&'\\'&raw10minFile,header = T, sep = ",", dec = ".")
+datRaw <- read.table(path_yal&'\\'&raw10minFile,header = T, sep = ",", dec = ".")
 
 timestr <- as.POSIXct(datRaw$TIMESTAMP, format="%m/%d/%Y  %H:%M")
 
 BVOLhourly <- TSaggregate(datRaw$BattV,timestr,60,5,'mean')   # BVOL, Battery status [V]
 BCONhourly <- TSaggregate(datRaw$Bucket_RT,timestr,60,5,'mean')   # BCON, Bucket content [mm]
-PVOLhourly <- TSaggregate(datRaw$Accumulated_RT_NRT_Tot,timestr,60,5,'sum') # PVOL, insttantaneous precipitation, mm
+PVOLhourly <- TSaggregate(datRaw$Accumulated_RT_NRT_Tot,timestr,60,5,'sum') # PVOL, instantaneous precipitation, mm
 
 TAIRhourly <- TSaggregate(datRaw$AirTC_Avg,timestr,60,5,'mean')      # TAIR, mean air temperature, [degC]
 datRaw$RH_Avg[datRaw$RH_Avg>100] <- 100
@@ -311,7 +311,7 @@ WSPDmaxhourly <- TSaggregate(datRaw$WS_ms_Avg,timestr,60,5,'max')   # WSPDmax, m
 WINDDIRhourly <- winddirmean(datRaw$WS_ms_Avg,datRaw$WindDir_D1_WVT, timestr,60,5) # WINDDIR, hourly wind direction, [deg]
 
 # SR50 Data
-datRaw_SR50 <- read.table(path_kya&'\\'&raw60minFile,header = T, sep = ",", dec = ".")
+datRaw_SR50 <- read.table(path_yal&'\\'&raw60minFile,header = T, sep = ",", dec = ".")
 
 #Quality check (Q needs to be between 152 and 200)
 datRaw_SR50$SR50_HAS_cor.1.[which(datRaw_SR50$SR50_Q.1.<152|datRaw_SR50$SR50_Q.1.>210)] <- NA
