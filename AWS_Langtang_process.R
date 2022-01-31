@@ -24,8 +24,8 @@
 # Created:          2018/02/05
 # Latest Revision:  2020/02/05
 #
-# Jakob F Steiner| PhD candidate | Faculty of Geosciences | Universiteit Utrecht | Princetonlaan 8a, 3584 CB Utrecht 
-# Vening Meinesz building, room 4.30 | P.O. Box 80.115, 3508 TC Utrecht | j.f.steiner@uu.nl | www.uu.nl/staff/jfsteiner | www.mountainhydrology.org 
+#
+# Jakob F Steiner| ICIMOD | jakob.steiner@icimod.org | x-hydrolab.org 
 ################################################################################
 # clear entire workspace (excl. packages)
 rm(list = ls())
@@ -62,10 +62,10 @@ Sys.setenv(TZ='UTC')
 ################
 # Location Kyanjing
 ################
-path_kya <- 'F:\\PhD\\FieldWork\\ProcessingFieldData\\LangtangAutumn2019' # path where data files are located and final file will be saved
-finOutput <- 'finalKyanjing2019.csv'
-raw10minFile <- '2019_KyanjingAWS_RAW.csv'            # generally includes all climate data
-raw60minFile <- '2019_KyanjingAWS_60min_RAW.csv'      # generally includes SR50 data
+path_kya <- 'D:\\Work\\FieldWork\\FieldDataSorting\\AWS_Kyanjing' # path where data files are located and final file will be saved
+finOutput <- 'finalKyanjingAug2021.csv'
+raw10minFile <- '2021Aug_Kyanjing_10min.csv'            # generally includes all climate data
+raw60minFile <- '2021Aug_Kyanjing_60min.csv'      # generally includes SR50 data
 
 datRaw <- read.table(path_kya&'\\'&raw10minFile,header = T, sep = ",", dec = ".")
 
@@ -273,9 +273,9 @@ write.csv(expData,file=path_kya&'//'&finOutput, row.names=FALSE)
 # Location Yala Basecamp
 ################
 path_yal <- 'D:\\Work\\FieldWork\\FieldDataSorting\\AWS_YalaBC' # path where data files are located and final file will be saved
-finOutput <- 'finalYalaBC2021.csv'
-raw10minFile <- '2021_YalaBCAWS_10min_RAW.csv'            # generally includes all climate data
-raw60minFile <- '2021_YalaBCAWS_60min_RAW.csv'      # generally includes SR50 data
+finOutput <- 'finalYalaBCAug2021.csv'
+raw10minFile <- '2021Aug_YalaBCAWS_10min_RAW.csv'            # generally includes all climate data
+raw60minFile <- '2021Aug_YalaBCAWS_60min_RAW.csv'      # generally includes SR50 data
 
 datRaw <- read.table(path_yal&'\\'&raw10minFile,header = T, sep = ",", dec = ".")
 
@@ -283,6 +283,7 @@ timestr <- as.POSIXct(datRaw$TIMESTAMP, format="%m/%d/%Y  %H:%M")
 
 BVOLhourly <- TSaggregate(datRaw$BattV,timestr,60,5,'mean')   # BVOL, Battery status [V]
 BCONhourly <- TSaggregate(datRaw$Bucket_RT,timestr,60,5,'mean')   # BCON, Bucket content [mm]
+datRaw$Accumulated_RT_NRT_Tot[datRaw$Accumulated_RT_NRT_Tot<=-100] <-NA
 PVOLhourly <- TSaggregate(datRaw$Accumulated_RT_NRT_Tot,timestr,60,5,'sum') # PVOL, instantaneous precipitation, mm
 
 TAIRhourly <- TSaggregate(datRaw$AirTC_Avg,timestr,60,5,'mean')      # TAIR, mean air temperature, [degC]
@@ -374,4 +375,91 @@ expData$WSPDmax <- WSPDmaxhourly[,2]
 expData$WINDDIR <- WINDDIRhourly[,2]
 expData$SR50 <- SR50hourly[matchAWSdata,2]
 
-write.csv(expData,file=path_kya&'//'&finOutput, row.names=FALSE)
+write.csv(expData,file=path_yal&'//'&finOutput, row.names=FALSE)
+
+
+################
+# Location Yala Gamma Ray
+################
+path_snobs <- 'D:\\Work\\FieldWork\\FieldDataSorting\\SNOBS\\' # path where data files are located and final file will be saved
+
+rawFile <- 'rawGamma_meteo.csv'            # raw sensor file
+rawFile_SR50 <- 'rawGamma_SR50.csv'            # SR50 data
+rawFile_CS725 <- 'rawGamma_CS725.csv'            # raw sensor file
+
+finOutput_station <- 'Gamma_2021.csv'
+finOutput_CS725 <- 'Gamma_CS725_2021.csv'
+
+datRaw <- read.table(path_snobs&'\\'&rawFile,header = T, sep = ",", dec = ".")
+
+timestr <- as.POSIXct(datRaw$TIMESTAMP, format="%m/%d/%Y  %H:%M",tz='UTC')
+
+# aggregate raw data to hourly
+SWin <- TSaggregate(datRaw$SWTop_Avg,timestr,60,0,'mean')   # SWin
+SWout <- TSaggregate(datRaw$SWBottom_Avg,timestr,60,0,'mean')   # SWout
+LWin <- TSaggregate(datRaw$LWTop_Avg,timestr,60,0,'mean')   # LWin
+LWout <- TSaggregate(datRaw$LWBottom_Avg,timestr,60,0,'mean')   # LWout
+LWinC <- TSaggregate(datRaw$LWTopC_Avg,timestr,60,0,'mean')   # LWinC
+LWoutC <- TSaggregate(datRaw$LWBottomC_Avg,timestr,60,0,'mean')   # LWoutC
+TCNR4 <- TSaggregate(datRaw$CNR4_T_C_Avg,timestr,60,0,'mean')   # T CNR4 in Celsius
+TCNR4_K <- TSaggregate(datRaw$CNR4_T_K_Avg,timestr,60,0,'mean')   # T CNR4 in Kelvin
+Rsnet <- TSaggregate(datRaw$Rs_net_Avg,timestr,60,0,'mean')   # net SW radiation
+Rlnet <- TSaggregate(datRaw$Rl_net_Avg,timestr,60,0,'mean')   # net LW radiation
+Rn <- TSaggregate(datRaw$Rn_Avg,timestr,60,0,'mean')   # net radiation
+alb <- TSaggregate(datRaw$albedo_Avg,timestr,60,0,'mean')   # net radiation
+
+Date <- as.Date(as.POSIXct(SWin[,1],origin='1970-01-01 +0545'))
+Time <- strftime(as.POSIXct(SWin[,1],origin='1970-01-01'),format="%H:%M:%S")
+
+datRaw_SR50 <- read.table(path_snobs&'\\'&rawFile_SR50,header = T, sep = ",", dec = ".")
+
+timestr_SR50 <- as.POSIXct(datRaw_SR50$TIMESTAMP, format="%m/%d/%Y  %H:%M",tz='UTC')
+
+SR50_dist <- TSaggregate(datRaw_SR50$SR50A_distance_Avg,timestr,60,0,'mean')   # SR50
+matchdata <- match(alb[,1],SR50_dist[,1])
+
+expData <- data.frame(matrix(ncol = 0, nrow = length(Date)))
+expData$DATE <- Date
+expData$TIME <- Time
+expData$SWin <- SWin[,2]
+expData$SWout <- SWout[,2]
+expData$LWin <- LWin[,2]
+expData$LWout <- LWout[,2]
+expData$TCNR4 <- TCNR4[,2]
+expData$TCNR4_K <- TCNR4_K[,2]
+expData$LWinC <- LWinC[,2]
+expData$LWoutC <- LWoutC[,2]
+expData$Rsnet <- Rsnet[,2]
+expData$Rlnet <- Rlnet[,2]
+expData$alb <- alb[,2]
+expData$Rn <- Rn[,2]
+expData$SR50 <- SR50_dist[matchdata,2]
+
+write.csv(expData,file=path_snobs&'//'&finOutput_station, row.names=FALSE)
+
+
+datRaw_CS725 <- read.table(path_snobs&'\\'&rawFile_CS725,header = T, sep = ",", dec = ".")
+
+timestr_CS725 <- as.POSIXct(datRaw_CS725$TIMESTAMP, format="%m/%d/%Y  %H:%M",tz='UTC')
+
+# aggregate raw data to hourly
+KCounts <- datRaw_CS725$CS725_K_Counts   
+TLCounts <- datRaw_CS725$CS725_TL_Counts 
+SWE_K <- datRaw_CS725$CS725_SWE_K
+SWE_TL <- datRaw_CS725$CS725_SWE_TL
+T_K_Ratio <- datRaw_CS725$CS725_K_TL_Ratio
+
+Date <- as.Date(timestr_CS725,origin='1970-01-01 +0545')
+Time <- strftime(timestr_CS725,format="%H:%M:%S")
+
+expData <- data.frame(matrix(ncol = 0, nrow = length(Date)))
+expData$DATE <- Date
+expData$TIME <- Time
+expData$K_Counts <- KCounts
+expData$TL_Counts <- TLCounts
+expData$SWE_K <- SWE_K
+expData$SWE_TL <- SWE_TL
+expData$K_TL_Ratio <- T_K_Ratio
+
+write.csv(expData,file=path_snobs&'//'&finOutput_CS725, row.names=FALSE)
+
